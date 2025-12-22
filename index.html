@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, user-scalable=no">
         <title>Hedgehog Workshop</title>
+<!--
         <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
         <script src="https://unpkg.com/@dashincubator/ripemd160/ripemd160.js"></script>
         <script src="https://supertestnet.github.io/testnet_generator/chain_client.js"></script>
@@ -11,7 +12,7 @@
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog.js"></script>
         <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog_workshop.js"></script>
-<!--
+-->
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/super_nostr.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/ripemd160.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/chain_client.js"></script>
@@ -19,7 +20,6 @@
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/noble-secp256k1@1.2.14"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog_workshop.js"></script>
--->
         <style>
             * {
                 box-sizing: border-box;
@@ -242,13 +242,13 @@
                     `;
                     $( '.x_modal' ).click();
                     var auto = false;
-                    hedgehog_workshop.stateLoop( auto );
+                    stateLoop( auto );
                 }
             }
             $( '.receive_btn' ).onclick = async () => {
                 var all_good = await hedgehog.receive();
                 var auto = false;
-                hedgehog_workshop.stateLoop( auto );
+                stateLoop( auto );
                 $( '.instructions' ).innerHTML = `
                     <p>Now that you've received money, you can also send it by clicking the Send on Hedgehog button</p>
                 `;
@@ -277,7 +277,7 @@
                 var sigs_and_stuff = await hedgehog.openChannel( push_all_funds_to_counterparty, null, channel_opening_data, alices_address, bobs_address, change_address, balances, utxos );
                 if ( !sigs_and_stuff ) return;
                 var auto = false;
-                hedgehog_workshop.stateLoop( auto );
+                stateLoop( auto );
                 $( '.instructions' ).innerHTML = `
                     <p>Send this data to your recipient and have them click the "Receive on hedgehog" button:</p>
                     <p>${JSON.stringify( sigs_and_stuff )}</p>
@@ -285,6 +285,110 @@
                 showPage( 'wallet_page' );
             }
             $$( '.back_btn' ).forEach( btn => btn.onclick = () => showPage( 'wallet_page' ) );
+            var stateLoop = async ( auto = true ) => {
+                var state_of_channels = await hedgehog_workshop.getStateOfChannels();
+                //Show status of active channels
+                var div = document.createElement( "div" );
+                var unconfirmed_hh_balance = 0;
+                var confirmed_hh_balance = 0;
+                var channels_to_remove = [];
+                
+                var i; for ( i=0; i<Object.keys( state_of_channels.channels_to_keep ).length; i++ ) {
+                    var chan_id = Object.keys( hedgehog.state )[ i ];
+                    var channel_label = hedgehog.state[ chan_id ].label;
+
+                    var inner = document.createElement( "div" );
+                    var html = `
+                        <div>
+                            <p>Label: <span class="channel_label">loading...</span></p>
+                            <p>Balance: <span class="channel_balance">0</span> sats</p>
+                            <p><button class="close_channel">Close channel</button> <button class="channel_send_btn hidden">Send</button> <button class="channel_receive_btn">Receive</button></p>
+                        </div>
+                    `;
+                    inner.innerHTML = html;
+                    inner = inner.firstElementChild;
+                    inner.classList.add( `channel` );
+                    inner.classList.add( `channel_${chan_id}` );
+                    inner.classList.add( `bordered` );
+                    inner.setAttribute( "data-chan_id", chan_id );
+                    inner.getElementsByClassName( "channel_label" )[ 0 ].innerText = channel_label;
+                    var channel_balance = hedgehog.state[ chan_id ].alices_privkey ? hedgehog.state[ chan_id ].balances[ 0 ] || 0 : hedgehog.state[ chan_id ].balances[ 1 ] || 0;
+                    inner.getElementsByClassName( "channel_balance" )[ 0 ].innerText = channel_balance.toLocaleString();
+                    inner.getElementsByClassName( "close_channel" )[ 0 ].onclick = async () => {
+                        var force_close_txs = await hedgehog.closeChannel( chan_id );
+                        await chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", force_close_txs[ 0 ] );
+                        var auto = false;
+                        stateLoop( auto );
+                    }
+                    inner.getElementsByClassName( "channel_send_btn" )[ 0 ].onclick = () => {
+                        $( '.instructions' ).innerHTML = `
+                            <p>Send this data to your recipient and have them click the "Receive on hedgehog" button:</p>
+                            <p>${JSON.stringify( hedgehog.send( chan_id ) )}</p>
+                        `;
+                        var auto = false;
+                        stateLoop( auto );
+                    }
+                    inner.getElementsByClassName( "channel_receive_btn" )[ 0 ].onclick = async () => {
+                        var all_good = await hedgehog.receive();
+                        var auto = false;
+                        stateLoop( auto );
+                    }
+                    div.append( inner );
+                }
+
+                //show status of closing channels
+                var i; for ( i=0; i<Object.keys( state_of_channels.closing_channels ).length; i++ ) {
+                    var chan_id = Object.keys( hedgehog_workshop.channels_being_closed )[ i ];
+
+                    //prepare variables
+                    var channel_label = hedgehog_workshop.channels_being_closed[ chan_id ].label;
+                    var { money_coming_to_you, waiting_for } = state_of_channels.closing_channels[ chan_id ];
+
+                    var inner = document.createElement( "div" );
+                    var html = `
+                        <div>
+                            <p>Label: <span class="channel_label">loading...</span></p>
+                            <p>Money coming to you: <span class="money_coming_to_you">0</span> sats</p>
+                            <p>What you are waiting for: <span class="waiting_for"></span></p>
+                        </div>
+                    `;
+                    inner.innerHTML = html;
+                    inner = inner.firstElementChild;
+                    inner.classList.add( `channel` );
+                    inner.classList.add( `channel_${chan_id}` );
+                    inner.classList.add( `bordered` );
+                    inner.setAttribute( "data-chan_id", chan_id );
+                    inner.getElementsByClassName( "channel_label" )[ 0 ].innerText = channel_label;
+                    inner.getElementsByClassName( "money_coming_to_you" )[ 0 ].innerText = money_coming_to_you.toLocaleString();
+                    inner.getElementsByClassName( "waiting_for" )[ 0 ].innerHTML = waiting_for;
+                    div.append( inner );
+                }
+
+                if ( !div.children.length ) {
+                    var para = document.createElement( "p" );
+                    para.innerText = `[None yet]`;
+                    div.append( para );
+                }
+
+                //display the info
+                $( '.channels_list' ).innerHTML = ``;
+                while ( div.children.length ) {
+                    var chan_id = div.children[ 0 ].hasAttribute( "data-chan_id" ) ? div.children[ 0 ].getAttribute( "data-chan_id" ) : "";
+                    if ( $( `.channel_${chan_id}` ) ) div.splice( 0, 1 );
+                    else $( '.channels_list' ).append( div.children[ 0 ] );
+                }
+
+                //Update balances
+                $( '.confirmed_hedgehog_balance' ).innerText = hedgehog_workshop.confirmed_L2_balance.toLocaleString();
+                $( '.unconfirmed_hedgehog_balance' ).innerText = hedgehog_workshop.unconfirmed_L2_balance.toLocaleString();
+                var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getBalances();
+                hedgehog_workshop.confirmed_L1_balance = confirmed_balance;
+                hedgehog_workshop.unconfirmed_L1_balance = unconfirmed_balance;
+                $( '.confirmed_balance' ).innerText = confirmed_balance.toLocaleString();
+                $( '.unconfirmed_balance' ).innerText = unconfirmed_balance.toLocaleString();
+                await chain_client.waitSomeTime( 5_000 );
+                if ( auto ) stateLoop();
+            }
             if ( $_HASH.admin ) {
                 var start = async () => {
                     var relay = prompt( `please enter a nostr relay e.g. ${hedgehog_workshop.relays[ 0 ]}`, hedgehog_workshop.relays[ 0 ] );
@@ -345,7 +449,7 @@
                     hedgehog_workshop.btc_address = address;
                     $( '.btc_address' ).innerText = address;
                     showPage( 'wallet_page' );
-                    hedgehog_workshop.stateLoop();
+                    stateLoop();
                 }
                 start();
             }
