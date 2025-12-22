@@ -126,7 +126,8 @@ var hedgehog_workshop = {
     },
     getStateOfChannels: async() => {
         var channels_to_remove = [];
-        var channels_to_keep = {}
+        var confirmed_channels = {}
+        var unconfirmed_channels = {}
 
         //process all channels in state list
         var confirmed_L2_balance = 0;
@@ -150,9 +151,13 @@ var hedgehog_workshop = {
 
             //otherwise, update the total balance and mark the channel for keeping
             var channel_balance = hedgehog.state[ chan_id ].alices_privkey ? hedgehog.state[ chan_id ].balances[ 0 ] || 0 : hedgehog.state[ chan_id ].balances[ 1 ] || 0;
-            if ( channel_is_confirmed ) confirmed_L2_balance = confirmed_L2_balance + channel_balance;
-            else unconfirmed_L2_balance = unconfirmed_L2_balance + channel_balance;
-            channels_to_keep[ chan_id ] = channel_balance;
+            if ( channel_is_confirmed ) {
+                confirmed_channels[ chan_id ] = channel_balance;
+                confirmed_L2_balance = confirmed_L2_balance + channel_balance;
+            } else {
+                unconfirmed_channels[ chan_id ] = channel_balance;
+                unconfirmed_L2_balance = unconfirmed_L2_balance + channel_balance;
+            }
         }
 
         hedgehog_workshop.confirmed_L2_balance = confirmed_L2_balance;
@@ -285,7 +290,7 @@ var hedgehog_workshop = {
             }
         }
 
-        return { channels_to_keep, closing_channels }
+        return { confirmed_channels, unconfirmed_channels, closing_channels }
     },
     getChannelOpeningData: () => {
         var privkey = hedgehog.bytesToHex( nobleSecp256k1.utils.randomPrivateKey() );
