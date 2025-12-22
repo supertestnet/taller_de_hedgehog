@@ -312,4 +312,8 @@ var hedgehog_workshop = {
         Object.keys( state_of_channels.unconfirmed_channels ).forEach( channel_id => unconfirmed_L2_balance = unconfirmed_L2_balance + state_of_channels.unconfirmed_channels[ channel_id ] );
         return { confirmed_L2_balance, unconfirmed_L2_balance }
     },
+    forceClose: async chan_id => {
+        var force_close_txs = await hedgehog.closeChannel( chan_id );
+        await chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", force_close_txs[ 0 ] );
+    },
 }
