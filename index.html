@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, user-scalable=no">
         <title>Hedgehog Workshop</title>
+<!--
         <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
         <script src="https://unpkg.com/@dashincubator/ripemd160/ripemd160.js"></script>
         <script src="https://supertestnet.github.io/testnet_generator/chain_client.js"></script>
@@ -11,7 +12,7 @@
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog.js"></script>
         <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog_workshop.js"></script>
-<!--
+-->
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/super_nostr.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/ripemd160.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/chain_client.js"></script>
@@ -19,7 +20,6 @@
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/noble-secp256k1@1.2.14"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog_workshop.js"></script>
--->
         <style>
             * {
                 box-sizing: border-box;
@@ -178,8 +178,8 @@
             <div class="channels_list"></div>
         </div>
         <script>
-            hedgehog_workshop.relays = [ "wss://no.str.cr" ];
-            // hedgehog_workshop.relays = [ "ws://127.0.0.1:6969" ];
+            // hedgehog_workshop.relays = [ "wss://no.str.cr" ];
+            hedgehog_workshop.relays = [ "ws://127.0.0.1:6969" ];
             var showPage = page => {
                 $$( '.hideable_page' ).forEach( page => page.classList.add( "hidden" ) );
                 $( `.${page}` ).classList.remove( "hidden" );
@@ -199,10 +199,6 @@
                 if ( amnt < 330 ) return alert( 'try again, the minimum amount is 330 sats' );
                 var sats_per_byte = 1;
                 var utxos = JSON.parse( JSON.stringify( hedgehog_workshop.utxos ) );
-                utxos.forEach( ( utxo, index ) => {
-                    utxos[ index ][ "address" ] = hedgehog_workshop.btc_address;
-                    utxos[ index ][ "privkey" ] = hedgehog_workshop.btc_privkey;
-                });
                 var change_address = hedgehog_workshop.btc_address;
                 var txhex = await hedgehog_workshop.spendCoins( address, amnt, sats_per_byte, utxos, change_address );
                 chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", txhex );
@@ -270,10 +266,6 @@
                 var change_address = hedgehog_workshop.btc_address;
                 var balances = await hedgehog_workshop.getBalances();
                 var utxos = JSON.parse( JSON.stringify( hedgehog_workshop.utxos ) );
-                utxos.forEach( ( utxo, index ) => {
-                    utxos[ index ][ "address" ] = hedgehog_workshop.btc_address;
-                    utxos[ index ][ "privkey" ] = hedgehog_workshop.btc_privkey;
-                });
                 var sigs_and_stuff = await hedgehog.openChannel( push_all_funds_to_counterparty, null, channel_opening_data, alices_address, bobs_address, change_address, balances, utxos );
                 if ( !sigs_and_stuff ) return;
                 var auto = false;
@@ -293,7 +285,8 @@
                 var confirmed_hh_balance = 0;
                 var channels_to_remove = [];
                 
-                var i; for ( i=0; i<Object.keys( state_of_channels.channels_to_keep ).length; i++ ) {
+                var channels_to_keep = { ...state_of_channels.confirmed_channels, ...state_of_channels.unconfirmed_channels }
+                var i; for ( i=0; i<Object.keys( channels_to_keep ).length; i++ ) {
                     var chan_id = Object.keys( hedgehog.state )[ i ];
                     var channel_label = hedgehog.state[ chan_id ].label;
 
