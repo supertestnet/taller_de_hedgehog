@@ -304,4 +304,12 @@ var hedgehog_workshop = {
     broadcastTx: async txhex => {
         return await chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", txhex )
     },
+    getChannelBalances: () => {
+        var confirmed_L2_balance = 0;
+        var unconfirmed_L2_balance = 0;
+        var state_of_channels = await hedgehog_workshop.getStateOfChannels();
+        Object.keys( state_of_channels.confirmed_channels ).forEach( channel_id => confirmed_L2_balance = confirmed_L2_balance + channels[ channel_id ] );
+        Object.keys( state_of_channels.unconfirmed_channels ).forEach( channel_id => unconfirmed_L2_balance = unconfirmed_L2_balance + channels[ channel_id ] );
+        return { confirmed_L2_balance, unconfirmed_L2_balance }
+    },
 }
