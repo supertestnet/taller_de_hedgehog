@@ -713,7 +713,10 @@ var hedgehog = {
         return true;
     },
     closeChannel: async chan_id => {
-        if ( !hedgehog.state[ chan_id ].latest_force_close_txs[ 0 ] ) return;
+        if ( !hedgehog.state[ chan_id ].latest_force_close_txs[ 0 ] ) {
+            delete hedgehog.state[ chan_id ];
+            return;
+        }
         hedgehog.state[ chan_id ].i_force_closed = true;
         console.log( "Broadcast this transaction to initiate a force closure:" );
         console.log( hedgehog.state[ chan_id ].latest_force_close_txs[ 0 ] );
