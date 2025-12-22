@@ -6,10 +6,9 @@
         <title>Hedgehog Workshop</title>
         <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
         <script src="https://unpkg.com/@dashincubator/ripemd160/ripemd160.js"></script>
-        <!-- <script src="https://supertestnet.github.io/testnet_generator/chain_client.js"></script> -->
+        <script src="https://supertestnet.github.io/testnet_generator/chain_client.js"></script>
         <script src="https://unpkg.com/@cmdcode/tapscript@1.4.0"></script>
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
-        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/chain_client.js"></script>
 <!--
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/super_nostr.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/ripemd160.js"></script>
@@ -118,7 +117,7 @@
                     //just have Alice open a channel with push_all_funds_to_counterparty set to true
                     //or have Bob open a channel with push_all_funds_to_counterparty set to false
                     if ( !push_all_funds_to_counterparty || data_from_counterparty ) {
-                        var has_data = data_from_counterparty || confirm( `Click ok if someone sent you channel opening info or cancel if you are opening this channel yourself` );
+                        var has_data = data_from_counterparty || confirm( `Click ok if someone sent you channel opening data or cancel if you are opening this channel yourself` );
                         if ( has_data ) {
                             if ( data_from_counterparty ) var data = data_from_counterparty;
                             else var data = JSON.parse( prompt( `Enter the data your counterparty sent you` ) );
@@ -867,7 +866,6 @@
                     return txhex;
                 },
                 stateLoop: async ( auto = true ) => {
-                    console.log( 'running state loop' );
                     //Show status of active channels
                     var div = document.createElement( "div" );
                     var total_hh_balance = 0;
@@ -907,7 +905,14 @@
                         total_hh_balance = total_hh_balance + channel_balance;
                         inner.getElementsByClassName( "channel_balance" )[ 0 ].innerText = channel_balance.toLocaleString();
                         inner.getElementsByClassName( "close_channel" )[ 0 ].onclick = () => hedgehog.closeChannel( chan_id );
-                        inner.getElementsByClassName( "channel_send_btn" )[ 0 ].onclick = () => {console.log( "send this data to your recipient:" );console.log( JSON.stringify( hedgehog.send( chan_id ) ) );}
+                        inner.getElementsByClassName( "channel_send_btn" )[ 0 ].onclick = () => {
+                            $( '.instructions' ).innerHTML = `
+                                <p>Send this data to your recipient and have them click the "Receive on hedgehog" button:</p>
+                                <p>${JSON.stringify( hedgehog.send( chan_id ) )}</p>
+                            `;
+                            var auto = false;
+                            hedgehog_workshop.stateLoop( auto );
+                        }
                         inner.getElementsByClassName( "channel_receive_btn" )[ 0 ].onclick = async () => {
                             var all_good = await hedgehog.receive();
                             var auto = false;
@@ -1066,6 +1071,18 @@
                     await chain_client.waitSomeTime( 5_000 );
                     if ( auto ) hedgehog_workshop.stateLoop();
                 },
+                shareChannelOpeningData: () => {
+                    var privkey = hedgehog.bytesToHex( nobleSecp256k1.utils.randomPrivateKey() );
+                    var pubkey = nobleSecp256k1.getPublicKey( privkey, true ).substring( 2 );
+                    var preimage = hedgehog.bytesToHex( nobleSecp256k1.utils.randomPrivateKey() ).substring( 0, 32 );
+                    var hash = hedgehog.rmd160( hedgehog.hexToBytes( preimage ) );
+                    hedgehog.keypairs[ pubkey ] = {privkey, preimage};
+                    var address = hedgehog_workshop.btc_address;
+                    $( '.instructions' ).innerHTML = `
+                        <p>Share the following channel opening data with someone who wants to open a channel to you:</p>
+                        <p>${JSON.stringify( [ pubkey, hash, address ] )}</p>
+                    `;
+                }
             }
         </script>
         <style>
@@ -1112,6 +1129,13 @@
             }
             .channel {
                 margin-top: 1rem;
+            }
+            .instructions_div {
+                padding: 1rem;
+                background-color: #cccccc;
+            }
+            .instructions_div * {
+                font-family: monospace;
             }
             @media screen and (max-width: 600px) {
             }
@@ -1200,6 +1224,15 @@
             <p><button class="use_faucet">Use faucet</button> <button class="send_on_L1">Send on L1</button></p>
             <p><button class="send_btn">Send on hedgehog</button> <button class="receive_btn">Receive on hedgehog</button></p>
             <p><button class="manage_channels">Manage channels</button></p>
+            <p><button class="share_channel_opening_data">Share channel opening data</button></p>
+            <div class="instructions_div">
+                <p>Instructions:</p>
+                <div class="instructions">
+                    <p>To start, the Channel Opener should click the Use Faucet button</p>
+                    <p>Then that person should click Manage Channels -> Open Channel and follow the instructions</p>
+                    <p>Then the Channel Recipient click Receive on Hedgehog</p>
+                </div>
+            </div>
         </div>
         <div class="hideable_page manage_channels_page hidden">
             <h2>Manage channels</h2>
@@ -1256,33 +1289,44 @@
                     <p><button class="submit_send">Submit</button></p>
                 `;
                 showModal( html );
+                $( '.amnt_to_send' ).focus();
+                $( '.amnt_to_send' ).select();
+                $( '.amnt_to_send' ).addEventListener( "keydown", e => {
+                    if ( e.key === "Enter" ) $( '.submit_send' ).click();
+                });
                 $( '.submit_send' ).onclick = async () => {
                     var chan_id = $( '.send_form' ).value;
                     var amnt = Number( $( '.amnt_to_send' ).value );
-                    console.log( chan_id, amnt );
-                    console.log( "send this data to your recipient:" );
-                    console.log( JSON.stringify( hedgehog.send( chan_id, amnt ) ) );
+                    $( '.instructions' ).innerHTML = `
+                        <p>Send this data to your recipient and have them click the "Receive on hedgehog" button:</p>
+                        <p>${JSON.stringify( hedgehog.send( chan_id, amnt ) )}</p>
+                    `;
                     $( '.x_modal' ).click();
+                    var auto = false;
+                    hedgehog_workshop.stateLoop( auto );
                 }
-                // var chan_id = Object.keys( hedgehog.state )[ 0 ];
-                // console.log( "send this data to your recipient:" );
-                // console.log( JSON.stringify( hedgehog.send( chan_id ) ) );
             }
             $( '.receive_btn' ).onclick = async () => {
                 var all_good = await hedgehog.receive();
                 var auto = false;
                 hedgehog_workshop.stateLoop( auto );
+                $( '.instructions' ).innerHTML = `
+                    <p>Now that you've received money, you can also send it by clicking the Send on Hedgehog button</p>
+                `;
             }
             $( '.manage_channels' ).onclick = () => showPage( 'manage_channels_page' );
+            $( '.share_channel_opening_data' ).onclick = () => {hedgehog_workshop.shareChannelOpeningData();}
             $( '.open_channel' ).onclick = async () => {
                 var push_all_funds_to_counterparty = true;
                 var sigs_and_stuff = await hedgehog.openChannel( push_all_funds_to_counterparty );
                 if ( !sigs_and_stuff ) return;
                 var auto = false;
                 hedgehog_workshop.stateLoop( auto );
-                console.log( 'send this to your counterparty:' );
-                console.log( JSON.stringify( sigs_and_stuff ) );
-                alert( `send the data in your console to your counterparty` );
+                $( '.instructions' ).innerHTML = `
+                    <p>Send this data to your recipient and have them click the "Receive on hedgehog" button:</p>
+                    <p>${JSON.stringify( sigs_and_stuff )}</p>
+                `;
+                showPage( 'wallet_page' );
             }
             $$( '.back_btn' ).forEach( btn => btn.onclick = () => showPage( 'wallet_page' ) );
             if ( $_HASH.admin ) {
@@ -1315,14 +1359,6 @@
                     hedgehog_workshop.btc_address = address;
                     $( '.btc_address' ).innerText = address;
                     showPage( 'wallet_page' );
-                    var privkey = hedgehog.bytesToHex( nobleSecp256k1.utils.randomPrivateKey() );
-                    var pubkey = nobleSecp256k1.getPublicKey( privkey, true ).substring( 2 );
-                    var preimage = hedgehog.bytesToHex( nobleSecp256k1.utils.randomPrivateKey() ).substring( 0, 32 );
-                    var hash = hedgehog.rmd160( hedgehog.hexToBytes( preimage ) );
-                    hedgehog.keypairs[ pubkey ] = {privkey, preimage};
-                    var address = hedgehog_workshop.btc_address;
-                    console.log( "Your channel opening data:" );
-                    console.log( JSON.stringify( [ pubkey, hash, address ] ) );
                     hedgehog_workshop.stateLoop();
                 }
                 start();
