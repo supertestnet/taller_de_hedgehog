@@ -342,16 +342,13 @@ var hedgehog_workshop = {
         await chain_client.waitSomeTime( 5_000 );
         if ( auto ) hedgehog_workshop.stateLoop();
     },
-    shareChannelOpeningData: () => {
+    getChannelOpeningData: () => {
         var privkey = hedgehog.bytesToHex( nobleSecp256k1.utils.randomPrivateKey() );
         var pubkey = nobleSecp256k1.getPublicKey( privkey, true ).substring( 2 );
         var preimage = hedgehog.bytesToHex( nobleSecp256k1.utils.randomPrivateKey() ).substring( 0, 32 );
         var hash = hedgehog.rmd160( hedgehog.hexToBytes( preimage ) );
         hedgehog.keypairs[ pubkey ] = {privkey, preimage};
         var address = hedgehog_workshop.btc_address;
-        $( '.instructions' ).innerHTML = `
-            <p>Share the following channel opening data with someone who wants to open a channel to you:</p>
-            <p>${JSON.stringify( [ pubkey, hash, address ] )}</p>
-        `;
+        return [ pubkey, hash, address ];
     },
 }
