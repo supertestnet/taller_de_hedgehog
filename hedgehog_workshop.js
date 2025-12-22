@@ -48,7 +48,9 @@ var hedgehog_workshop = {
     getBalances: async () => {
         var address = hedgehog_workshop.btc_address;
         if ( !address ) return { confirmed_balance: 0, unconfirmed_balance: 0 }
-        hedgehog_workshop.utxos = await chain_client.commander( hedgehog_workshop.network_string.split( "," ), "utxos", address );
+        var utxos = await chain_client.commander( hedgehog_workshop.network_string.split( "," ), "utxos", address );
+        utxos.forEach( ( utxo, index ) => {utxos[ index ][ "address" ] = hedgehog_workshop.btc_address;utxos[ index ][ "privkey" ] = hedgehog_workshop.btc_privkey });
+        hedgehog_workshop.utxos = utxos;
         var confirmed_balance = 0;
         var unconfirmed_balance = 0;
         var i; for ( i=0; i<hedgehog_workshop.utxos.length; i++ ) {
