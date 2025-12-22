@@ -178,6 +178,8 @@
             <div class="channels_list"></div>
         </div>
         <script>
+            // hedgehog_workshop.relays = [ "wss://no.str.cr" ];
+            hedgehog_workshop.relays = [ "ws://127.0.0.1:6969" ];
             var showPage = page => {
                 $$( '.hideable_page' ).forEach( page => page.classList.add( "hidden" ) );
                 $( `.${page}` ).classList.remove( "hidden" );
