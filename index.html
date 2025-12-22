@@ -868,7 +868,8 @@
                 stateLoop: async ( auto = true ) => {
                     //Show status of active channels
                     var div = document.createElement( "div" );
-                    var total_hh_balance = 0;
+                    var unconfirmed_hh_balance = 0;
+                    var confirmed_hh_balance = 0;
                     var channels_to_remove = [];
                     var i; for ( i=0; i<Object.keys( hedgehog.state ).length; i++ ) {
                         var chan_id = Object.keys( hedgehog.state )[ i ];
@@ -877,8 +878,10 @@
                         //ensure channel still exists
                         var channel_utxos = await chain_client.commander( hedgehog_workshop.network_string.split( "," ), "utxos", hedgehog.state[ chan_id ].multisig );
                         var channel_ceased = true;
+                        var channel_is_confirmed = false;
                         channel_utxos.forEach( utxo => {
                             if ( utxo.txid !== hedgehog.state[ chan_id ].multisig_utxo_info.txid ) return;
+                            if ( utxo.status.confirmed ) channel_is_confirmed = true;
                             channel_ceased = false;
                         });
                         if ( channel_ceased ) {
@@ -902,7 +905,8 @@
                         inner.setAttribute( "data-chan_id", chan_id );
                         inner.getElementsByClassName( "channel_label" )[ 0 ].innerText = channel_label;
                         var channel_balance = hedgehog.state[ chan_id ].alices_privkey ? hedgehog.state[ chan_id ].balances[ 0 ] || 0 : hedgehog.state[ chan_id ].balances[ 1 ] || 0;
-                        total_hh_balance = total_hh_balance + channel_balance;
+                        if ( channel_is_confirmed ) confirmed_hh_balance = confirmed_hh_balance + channel_balance;
+                        else unconfirmed_hh_balance = unconfirmed_hh_balance + channel_balance;
                         inner.getElementsByClassName( "channel_balance" )[ 0 ].innerText = channel_balance.toLocaleString();
                         inner.getElementsByClassName( "close_channel" )[ 0 ].onclick = () => hedgehog.closeChannel( chan_id );
                         inner.getElementsByClassName( "channel_send_btn" )[ 0 ].onclick = () => {
@@ -1062,7 +1066,8 @@
                     }
 
                     //Update hedgehog balance
-                    $( '.hedgehog_balance' ).innerText = total_hh_balance.toLocaleString();
+                    $( '.confirmed_hedgehog_balance' ).innerText = confirmed_hh_balance.toLocaleString();
+                    $( '.unconfirmed_hedgehog_balance' ).innerText = unconfirmed_hh_balance.toLocaleString();
 
                     //Update L1 balances
                     var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getBalances();
@@ -1219,7 +1224,8 @@
             <hr>
             <p>Confirmed L1 balance: <span class="confirmed_balance">0</span> sats</p>
             <p>Unconfirmed L1 balance: <span class="unconfirmed_balance">0</span> sats</p>
-            <p>Confirmed L2 balance: <span class="hedgehog_balance">0</span> sats</p>
+            <p>Confirmed L2 balance: <span class="confirmed_hedgehog_balance">0</span> sats</p>
+            <p>Unconfirmed L2 balance: <span class="unconfirmed_hedgehog_balance">0</span> sats</p>
             <hr>
             <p><button class="use_faucet">Use faucet</button> <button class="send_on_L1">Send on L1</button></p>
             <p><button class="send_btn">Send on hedgehog</button> <button class="receive_btn">Receive on hedgehog</button></p>
