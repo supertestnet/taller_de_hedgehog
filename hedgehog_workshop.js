@@ -198,7 +198,7 @@ var hedgehog_workshop = {
                     var num_of_confs = 0;
                     if ( info_i_seek.status.confirmed ) num_of_confs = blockheight - info_i_seek.status.block_height;
                     awaited_blockheight = info_i_seek.status.block_height || blockheight + 5;
-                    waiting_for = `You are waiting for confirmations. Hedgehog force closures require two transactions to force close a channel; you've already broadcasted the first one, but the second one is timelocked and cannot be broadcasted til the first one has 5 confirmations. It currently has ${num_of_confs}, so you are waiting for ${5 - num_of_confs} confirmations. When the time is right, your app will broadcast this tx: <br><br>${tx_to_broadcast}`;
+                    waiting_for = `You are waiting for confirmations. Hedgehog force closures require two transactions to force close a channel; you've already broadcasted the first one, but the second one is timelocked and cannot be broadcasted til the first one has 5 confirmations. It currently has ${num_of_confs}, so you are waiting for ${5 - num_of_confs} confirmations. When the time is right, you should see ${money_coming_to_you.toLocaleString()} sats arrive in your wallet, because your app will broadcast this tx automatically: <br><br>${tx_to_broadcast}`;
                     if ( num_of_confs >= 5 ) chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
                 }
             } else {
