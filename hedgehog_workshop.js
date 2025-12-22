@@ -296,4 +296,7 @@ var hedgehog_workshop = {
         var address = hedgehog_workshop.btc_address;
         return [ pubkey, hash, address ];
     },
+    broadcastTx: async txhex => {
+        return await chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", txhex )
+    },
 }
