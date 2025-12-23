@@ -162,6 +162,7 @@
             <p><button class="manage_channels">Manage channels</button></p>
             <p><button class="share_channel_opening_data">Share channel opening data</button></p>
             <p><button class="view_blockchain">View the blockchain</button></p>
+            <p><button class="download_state">Save wallet</button> <button class="upload_state">Recover wallet</button></p>
             <div class="instructions_div">
                 <p>Instructions:</p>
                 <div class="instructions">
@@ -187,7 +188,7 @@
             $( `.use_faucet` ).onclick = async () => {
                 if ( !hedgehog_workshop.faucet_usable ) return alert( 'faucet may only be used once' );
                 await hedgehog_workshop.useFaucet();
-                var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getBalances();
+                var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getL1Balances();
                 $( '.confirmed_balance' ).innerText = confirmed_balance.toLocaleString();
                 $( '.unconfirmed_balance' ).innerText = unconfirmed_balance.toLocaleString();
             }
@@ -264,7 +265,7 @@
                 var alices_address = channel_opening_data[ 2 ];
                 var bobs_address = hedgehog_workshop.btc_address;
                 var change_address = hedgehog_workshop.btc_address;
-                var balances = await hedgehog_workshop.getBalances();
+                var balances = await hedgehog_workshop.getL1Balances();
                 var utxos = JSON.parse( JSON.stringify( hedgehog_workshop.utxos ) );
                 var sigs_and_stuff = await hedgehog.openChannel( push_all_funds_to_counterparty, null, channel_opening_data, alices_address, bobs_address, change_address, balances, utxos );
                 if ( !sigs_and_stuff ) return;
@@ -374,7 +375,7 @@
                 //Update balances
                 $( '.confirmed_hedgehog_balance' ).innerText = hedgehog_workshop.confirmed_L2_balance.toLocaleString();
                 $( '.unconfirmed_hedgehog_balance' ).innerText = hedgehog_workshop.unconfirmed_L2_balance.toLocaleString();
-                var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getBalances();
+                var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getL1Balances();
                 hedgehog_workshop.confirmed_L1_balance = confirmed_balance;
                 hedgehog_workshop.unconfirmed_L1_balance = unconfirmed_balance;
                 $( '.confirmed_balance' ).innerText = confirmed_balance.toLocaleString();
@@ -435,6 +436,22 @@
                     $( '.view_blockchain' ).onclick = () => {
                         var url = chain_client.base_url + `#pubkey=${network_string.split( "," )[ 0 ]}#relays=${hex_relays}`;
                         window.open( url, '_blank' );
+                    }
+                    $( '.download_state' ).onclick = () => {
+                        var state = hedgehog_workshop.downloadState();
+                        $( '.instructions' ).innerHTML = `
+                            <p>Save this data to restore your wallet later with the same state it has now:</p>
+                            <p>${state}</p>
+                        `;
+                    }
+                    $( '.upload_state' ).onclick = () => {
+                        var state = prompt( `enter the data you saved earlier` );
+                        hedgehog_workshop.uploadState( state );
+                        $( '.instructions' ).innerHTML = `
+                            <p>Congratulations, your wallet is recovered</p>
+                        `;
+                        var auto = false;
+                        stateLoop( auto );
                     }
                     var privkey = chain_client.getPrivkey();
                     var pubkey = chain_client.getPubkey( privkey );
