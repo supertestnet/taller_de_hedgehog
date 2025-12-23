@@ -4,7 +4,6 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, user-scalable=no">
         <title>Hedgehog Workshop</title>
-<!--
         <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
         <script src="https://unpkg.com/@dashincubator/ripemd160/ripemd160.js"></script>
         <script src="https://supertestnet.github.io/testnet_generator/chain_client.js"></script>
@@ -12,7 +11,7 @@
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog.js"></script>
         <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog_workshop.js"></script>
--->
+<!--
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/super_nostr.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/ripemd160.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/chain_client.js"></script>
@@ -20,6 +19,7 @@
         <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/noble-secp256k1@1.2.14"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog.js"></script>
         <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog_workshop.js"></script>
+-->
         <style>
             * {
                 box-sizing: border-box;
@@ -179,8 +179,8 @@
             <div class="channels_list"></div>
         </div>
         <script>
-            // hedgehog_workshop.relays = [ "wss://no.str.cr" ];
-            hedgehog_workshop.relays = [ "ws://127.0.0.1:6969" ];
+            hedgehog_workshop.relays = [ "wss://no.str.cr" ];
+            // hedgehog_workshop.relays = [ "ws://127.0.0.1:6969" ];
             var showPage = page => {
                 $$( '.hideable_page' ).forEach( page => page.classList.add( "hidden" ) );
                 $( `.${page}` ).classList.remove( "hidden" );
