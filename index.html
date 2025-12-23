@@ -385,6 +385,7 @@
             if ( $_HASH.admin ) {
                 var start = async () => {
                     var relay = prompt( `please enter a nostr relay e.g. ${hedgehog_workshop.relays[ 0 ]}`, hedgehog_workshop.relays[ 0 ] );
+                    hedgehog_workshop.relays = [ relay ];
                     var [ testnet_privkey, network_string ] = await chain_client.createNetwork( [ relay ] );
                     var testnet_pubkey = network_string.split( "," )[ 0 ];
                     hedgehog_workshop.testnet_privkey = testnet_privkey;
