@@ -338,7 +338,7 @@ var hedgehog_workshop = {
         return btoa( JSON.stringify( state ) );
     },
     uploadState: blob => {
-        var state = JSON.parse( btoa( blob ) );
+        var state = JSON.parse( atob( blob ) );
         hedgehog.state = state.hedgehog_state;
         hedgehog.keypairs = state.hedgehog_keypairs;
         hedgehog_workshop.faucet_usable = state.workshop_state.faucet_usable;
