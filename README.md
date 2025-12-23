@@ -5,7 +5,7 @@ Sencillo demonstración de mi protocolo "Hedgehog" con una billetera basado en e
 https://tinyurl.com/taller-de-hedgehog
 
 # Cómo usar
-Abre el archivo workshop.html con tu navegador preferido, entonces ver el console de desarolladores y sigue las instrucciones
+Abre el archivo workshop.html con tu navegador preferido, entonces abre el console de desarolladores y sigue las instrucciones
 
 Abre esto enlace:
 https://supertestnet.github.io/taller_de_hedgehog/workshop.html
