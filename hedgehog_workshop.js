@@ -355,4 +355,9 @@ var hedgehog_workshop = {
         hedgehog_workshop.unconfirmed_L2_balance = state.workshop_state.unconfirmed_L2_balance;
         hedgehog_workshop.confirmed_L2_balance = state.workshop_state.confirmed_L2_balance;
     },
+    viewBlockchain: () => {
+        var network_string = hedgehog_workshop.network_string;
+        var hex_relays = chain_client.textToHex( JSON.stringify( [ network_string.split( "," )[ 1 ] ] ) );
+        return chain_client.base_url + `#pubkey=${network_string.split( "," )[ 0 ]}#relays=${hex_relays}`;
+    },
 }
