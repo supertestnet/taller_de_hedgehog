@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no">
+        <title>Hedgehog Workshop</title>
+<!--
+        <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
+        <script src="https://unpkg.com/@dashincubator/ripemd160/ripemd160.js"></script>
+        <script src="https://supertestnet.github.io/testnet_generator/chain_client.js"></script>
+        <script src="https://unpkg.com/@cmdcode/tapscript@1.4.0"></script>
+        <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
+        <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog.js"></script>
+        <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog_workshop.js"></script>
+-->
+        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/super_nostr.js"></script>
+        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/ripemd160.js"></script>
+        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/chain_client.js"></script>
+        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/tapscript@1.5.3"></script>
+        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/noble-secp256k1@1.2.14"></script>
+        <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog.js"></script>
+        <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog_workshop.js"></script>
+        <style>
+            * {
+                box-sizing: border-box;
+                font-size: 1.15rem;
+                font-family: Arial, sans-serif;
+            }
+            html {
+                max-width: 800px;
+                padding: 3rem 1rem;
+                margin: auto;
+                line-height: 1.25;
+                padding: 0;
+            }
+            body {
+                margin: 3rem 1rem;
+                word-wrap: break-word;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            input {
+                line-height: 1.25;
+                width: 100%;
+                height: 1.8rem;
+                font-size: 1.15rem;
+                border: 1px solid grey;
+            }
+            .hidden {
+                display: none !important;
+            }
+            @media screen and (max-width: 600px) {
+            }
+        </style>
+        <script>
+            var $ = document.querySelector.bind( document );
+            var $$ = document.querySelectorAll.bind( document );
+            var url_params = new URLSearchParams( window.location.search );
+            var url_keys = url_params.keys();
+            var $_GET = {}
+            for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
+            var hash_arr = window.location.href.substring( window.location.href.indexOf( "#" ) ).split( "#" );
+            hash_arr.splice( 0, 1 );
+            var $_HASH = {}
+            hash_arr.forEach( item => {
+                var vals = item.split( "=" );
+                $_HASH[ vals[ 0 ] ] = vals[ 1 ];
+            });
+        </script>
+    </head>
+    <body>
+        <h1>Hola</h1>
+        <script>
+            (async()=>{
+                //preparar la red
+                hedgehog_workshop.network_string = `dd8ffb147990cbdd0c025b94f3876b833e1fda89b6e5e4cc7657a061d40db0db,ws://127.0.0.1:6969`;
+                var privkey = chain_client.getPrivkey();
+                var pubkey = chain_client.getPubkey( privkey );
+                var address = tapscript.Address.fromScriptPubKey( [ 1, pubkey ], hedgehog.network );
+                hedgehog_workshop.btc_privkey = privkey;
+                hedgehog_workshop.btc_address = address;
+                console.log( 'my direccion de bitcoin:' );
+                console.log( address );
+
+                //ver tu saldo
+                var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getL1Balances();
+                console.log( 'su saldo antes del uso de la espita:' );
+                console.log( confirmed_balance + unconfirmed_balance );
+
+                //usar la espita
+                await hedgehog_workshop.useFaucet();
+                var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getL1Balances();
+                console.log( 'su saldo despues del uso de la espita:' );
+                console.log( confirmed_balance + unconfirmed_balance );
+
+                //ver la diferencia entre un saldo confirmado y un saldo no confirmado
+                console.log( 'la parte confirmada:' );
+                console.log( confirmed_balance );
+                console.log( 'la parte no confirmada:' );
+                console.log( unconfirmed_balance );
+
+                //enviar dinero por Capa Uno
+                var am_L1_sender = confirm( `elige un companero, y deciden si tu eres el enviador o el recipiente; haz click "ok" si eres el enviador, y haz click "cancel" si eres el recipiente` );
+                await chain_client.waitSomeTime( 100 );
+                if ( am_L1_sender ) {
+                    var recipient = prompt( `entra la direccion de un companero` );
+                    var amount = 10_000;
+                    var sats_per_byte = 1;
+                    var utxos = JSON.parse( JSON.stringify( hedgehog_workshop.utxos ) );
+                    var change_address = hedgehog_workshop.btc_address;
+                    var txhex = await hedgehog_workshop.spendCoins( recipient, amount, sats_per_byte, utxos, change_address );
+                    var txid = await hedgehog_workshop.broadcastTx( txhex );
+
+                    //ver la diferencia despues de una transaccion
+                    var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getL1Balances();
+                    console.log( 'la parte confirmada:' );
+                    console.log( confirmed_balance );
+                    console.log( 'la parte no confirmada:' );
+                    console.log( unconfirmed_balance );
+
+                    await chain_client.waitSomeTime( 100 );
+                    alert( `Eres a Paso 2. Avisa tu contraparte que estas esperando para el o ella, y haz click "ok" cuando tu contraparte dice que el tambien esta al mismo paso. Nota: tu contraparte debe hacer click primero, y tu debes hacer click despues.` );
+                    await chain_client.waitSomeTime( 100 );
+                } else {
+                    await chain_client.waitSomeTime( 100 );
+                    alert( `Eres a Paso 2. Avisa tu contraparte que estas esperando para el o ella, y haz click "ok" cuando tu contraparte dice que el tambien esta al mismo paso. Nota: tu debes hacer click primero, y tu contraparte debe hacer click despues.` );
+                    var { confirmed_balance, unconfirmed_balance } = await hedgehog_workshop.getL1Balances();
+                    console.log( 'la parte confirmada:' );
+                    console.log( confirmed_balance );
+                    console.log( 'la parte no confirmada:' );
+                    console.log( unconfirmed_balance );
+                }
+
+                //abre un canal de pagos
+                if ( am_L1_sender ) {
+                    await chain_client.waitSomeTime( 100 );
+                    var channel_opening_data = JSON.parse( prompt( `Enter your counterparty's channel opening data` ) );
+                    await chain_client.waitSomeTime( 100 );
+                    if ( !channel_opening_data ) return;
+                    var push_all_funds_to_counterparty = true;
+                    var alices_address = channel_opening_data[ 2 ];
+                    var bobs_address = hedgehog_workshop.btc_address;
+                    var change_address = hedgehog_workshop.btc_address;
+                    var L1_balances = await hedgehog_workshop.getL1Balances();
+                    var utxos = JSON.parse( JSON.stringify( hedgehog_workshop.utxos ) );
+                    var payment_data = await hedgehog.openChannel( push_all_funds_to_counterparty, null, channel_opening_data, alices_address, bobs_address, change_address, L1_balances, utxos );
+                    console.log( 'envia a tu contraparte el pago abajo:' );
+                    console.log( JSON.stringify( payment_data ) );
+                    await chain_client.waitSomeTime( 100 );
+                    var L1_balances = await hedgehog_workshop.getL1Balances();
+                    console.log( 'tu saldo L1 despues de abrir un canal de pagos:' );
+                    console.log( L1_balances.confirmed_balance + L1_balances.unconfirmed_balance );
+                } else {
+                    await chain_client.waitSomeTime( 100 );
+                    var channel_opening_data = hedgehog_workshop.getChannelOpeningData();
+                    await chain_client.waitSomeTime( 100 );
+                    console.log( 'envia a tu contraparte la info abajo:' );
+                    console.log( JSON.stringify( channel_opening_data ) );
+                    alert( 'envia a tu contraparte la info en tu console y haz click "ok"' );
+                    await chain_client.waitSomeTime( 100 );
+                    var payment_data = JSON.parse( prompt( `entra el pago de tu contraparte` ) );
+                    await chain_client.waitSomeTime( 100 );
+                    var received = await hedgehog.receive( payment_data );
+                    await chain_client.waitSomeTime( 100 );
+                    var L2_balances = await hedgehog_workshop.getL2Balances();
+                    console.log( 'tu saldo de hedgehog:' );
+                    console.log( L2_balances.confirmed_L2_balance + L2_balances.unconfirmed_L2_balance );
+                }
+
+                //el recipiente del canal va a enviar dinero por Hedgehog
+                var am_L2_sender = !am_L1_sender;
+                var chan_id = payment_data.chan_id;
+                if ( am_L2_sender ) {
+                    await chain_client.waitSomeTime( 100 );
+                    alert( `Eres a Paso 3. Avisa tu contraparte que estas esperando para el o ella, y haz click "ok" cuando tu contraparte dice que el tambien esta al mismo paso. Nota: tu contraparte debe hacer click primero, y tu debes hacer click despues.` );
+                    await chain_client.waitSomeTime( 100 );
+                    var amount = Number( prompt( `entra la cantidad de sats que quieres enviar a tu recipiente por hedgehog` ) );
+                    var payment_data = await hedgehog.send( chan_id, amount );
+                    console.log( 'envia a tu contraparte el pago abajo:' );
+                    console.log( JSON.stringify( payment_data ) );
+                    await chain_client.waitSomeTime( 100 );
+                    var L2_balances = await hedgehog_workshop.getL2Balances();
+                    console.log( 'tu saldo de hedgehog despues de un pago:' );
+                    console.log( L2_balances.confirmed_L2_balance + L2_balances.unconfirmed_L2_balance );
+                } else {
+                    await chain_client.waitSomeTime( 100 );
+                    alert( `Eres a Paso 3. Avisa tu contraparte que estas esperando para el o ella, y haz click "ok" cuando tu contraparte dice que el tambien esta al mismo paso. Nota: tu debes hacer click primero, y tu contraparte debe hacer click despues.` );
+                    await chain_client.waitSomeTime( 100 );
+                    var payment_data = JSON.parse( prompt( `entra el pago de tu contraparte` ) );
+                    await chain_client.waitSomeTime( 100 );
+                    var received = await hedgehog.receive( payment_data );
+                    await chain_client.waitSomeTime( 100 );
+                    var L2_balances = await hedgehog_workshop.getL2Balances();
+                    console.log( 'tu saldo de hedgehog:' );
+                    console.log( L2_balances.confirmed_L2_balance + L2_balances.unconfirmed_L2_balance );
+                }
+
+                await chain_client.waitSomeTime( 100 );
+                alert( `Eres a Paso 4. Avisa tu contraparte que estas esperando para el o ella, y haz click "ok" cuando tu contraparte dice que el tambien esta al mismo paso. Nota: no importa a quien hace click primero.` );
+                await chain_client.waitSomeTime( 100 );
+                var am_L2_closer = confirm( `entre tu y tu companero, elige quien va a cerrar el canal con fuerza; haz click "ok" si tu lo cerraras, y haz click "cancel" si tu contraparte lo cerrara` );
+                if ( am_L2_closer ) await hedgehog_workshop.forceClose( chan_id );
+                console.log( `Tu canal esta en processo de cerrar. Puedes ver su status por correr esto mandato:` );
+                console.log( `var chan_id = '${chan_id}';var channels_status = await hedgehog_workshop.getStateOfChannels(); console.log( channels_status.closing_channels[ chan_id ].waiting_for );` );
+                console.log( `Nota: la primera vez que corres el mandato, problamente producera un error, porque la primera vez que se corre, cambia el estado del canal, y entonces solo la segunda vez puede avisarte del estado nuevo; y cuando el bloque llega que esperas, necesitas correr el mandato de nuevo para publicar tu transaccion final. Solo si corres de nuevo despues de esto, decira que sirvo` );
+                console.log( `Tambien, puedes ver tu saldo de L1 con esto mandato:` );
+                console.log( `var L1_balances = await hedgehog_workshop.getL1Balances();console.log( L1_balances );` );
+            })();
+        </script>
+    </body>
+</html>
