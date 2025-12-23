@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, user-scalable=no">
         <title>Hedgehog Workshop</title>
-<!--
         <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
         <script src="https://unpkg.com/@dashincubator/ripemd160/ripemd160.js"></script>
         <script src="https://supertestnet.github.io/testnet_generator/chain_client.js"></script>
@@ -12,74 +9,16 @@
         <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
         <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog.js"></script>
         <script src="https://supertestnet.github.io/taller_de_hedgehog/hedgehog_workshop.js"></script>
--->
-        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/super_nostr.js"></script>
-        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/ripemd160.js"></script>
-        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/chain_client.js"></script>
-        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/tapscript@1.5.3"></script>
-        <script src="file:///home/supertestnet/bitcoin_projects/testnet_generator/noble-secp256k1@1.2.14"></script>
-        <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog.js"></script>
-        <script src="file:///home/supertestnet/bitcoin_projects/hedgehog_workshop/hedgehog_workshop.js"></script>
-        <style>
-            * {
-                box-sizing: border-box;
-                font-size: 1.15rem;
-                font-family: Arial, sans-serif;
-            }
-            html {
-                max-width: 800px;
-                padding: 3rem 1rem;
-                margin: auto;
-                line-height: 1.25;
-                padding: 0;
-            }
-            body {
-                margin: 3rem 1rem;
-                word-wrap: break-word;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            h2 {
-                font-size: 1.5rem;
-            }
-            input {
-                line-height: 1.25;
-                width: 100%;
-                height: 1.8rem;
-                font-size: 1.15rem;
-                border: 1px solid grey;
-            }
-            .hidden {
-                display: none !important;
-            }
-            @media screen and (max-width: 600px) {
-            }
-        </style>
-        <script>
-            var $ = document.querySelector.bind( document );
-            var $$ = document.querySelectorAll.bind( document );
-            var url_params = new URLSearchParams( window.location.search );
-            var url_keys = url_params.keys();
-            var $_GET = {}
-            for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
-            var hash_arr = window.location.href.substring( window.location.href.indexOf( "#" ) ).split( "#" );
-            hash_arr.splice( 0, 1 );
-            var $_HASH = {}
-            hash_arr.forEach( item => {
-                var vals = item.split( "=" );
-                $_HASH[ vals[ 0 ] ] = vals[ 1 ];
-            });
-        </script>
     </head>
     <body>
-        <h1>Hola</h1>
         <script>
             (async()=>{
                 //preparar la red
-                hedgehog_workshop.network_string = `dd8ffb147990cbdd0c025b94f3876b833e1fda89b6e5e4cc7657a061d40db0db,ws://127.0.0.1:6969`;
+                hedgehog_workshop.network_string = `2668836e12def2f416c75a68855f780c8c85dc9d9cf75729ef051bcfe787bce8,wss://no.str.cr`;
                 var privkey = chain_client.getPrivkey();
                 var pubkey = chain_client.getPubkey( privkey );
+
+                //ver tu direccion
                 var address = tapscript.Address.fromScriptPubKey( [ 1, pubkey ], hedgehog.network );
                 hedgehog_workshop.btc_privkey = privkey;
                 hedgehog_workshop.btc_address = address;
@@ -104,7 +43,7 @@
                 console.log( unconfirmed_balance );
 
                 //enviar dinero por Capa Uno
-                var am_L1_sender = confirm( `elige un companero, y deciden si tu eres el enviador o el recipiente; haz click "ok" si eres el enviador, y haz click "cancel" si eres el recipiente` );
+                var am_L1_sender = confirm( `elige un companero, y deciden si tu eres el enviador o el recipiente; haz click "ok" si eres el enviador, y haz click "cancel" si eres el recipiente. Nota: el enviador debe hacer click primero, y el recipiente despues.` );
                 await chain_client.waitSomeTime( 100 );
                 if ( am_L1_sender ) {
                     var recipient = prompt( `entra la direccion de un companero` );
@@ -199,16 +138,37 @@
                     console.log( L2_balances.confirmed_L2_balance + L2_balances.unconfirmed_L2_balance );
                 }
 
+                //espera por tu companero
                 await chain_client.waitSomeTime( 100 );
                 alert( `Eres a Paso 4. Avisa tu contraparte que estas esperando para el o ella, y haz click "ok" cuando tu contraparte dice que el tambien esta al mismo paso. Nota: no importa a quien hace click primero.` );
                 await chain_client.waitSomeTime( 100 );
+
+                //cerrar el canal
                 var am_L2_closer = confirm( `entre tu y tu companero, elige quien va a cerrar el canal con fuerza; haz click "ok" si tu lo cerraras, y haz click "cancel" si tu contraparte lo cerrara` );
                 if ( am_L2_closer ) await hedgehog_workshop.forceClose( chan_id );
                 console.log( `Tu canal esta en processo de cerrar. Puedes ver su status por correr esto mandato:` );
+
+                //informar al usuario el mandato para ver el estado de su canal
                 console.log( `var chan_id = '${chan_id}';var channels_status = await hedgehog_workshop.getStateOfChannels(); console.log( channels_status.closing_channels[ chan_id ].waiting_for );` );
+
+                //avisar el usuario
                 console.log( `Nota: la primera vez que corres el mandato, problamente producera un error, porque la primera vez que se corre, cambia el estado del canal, y entonces solo la segunda vez puede avisarte del estado nuevo; y cuando el bloque llega que esperas, necesitas correr el mandato de nuevo para publicar tu transaccion final. Solo si corres de nuevo despues de esto, decira que sirvo` );
+
+                //otros mandatos utiles
                 console.log( `Tambien, puedes ver tu saldo de L1 con esto mandato:` );
                 console.log( `var L1_balances = await hedgehog_workshop.getL1Balances();console.log( L1_balances );` );
+                console.log( `Y tu saldo de L2:` );
+                console.log( `var L2_balances = await hedgehog_workshop.getL2Balances();console.log( L2_balances );` );
+
+                //aun mas mandatos utiles
+                console.log( `Para ver el blockchain:` );
+                console.log( `var url = hedgehog_workshop.viewBlockchain();console.log( url );` );
+                console.log( `Para bajar tu billetera:` );
+                console.log( `var state = hedgehog_workshop.downloadState();console.log( state );` );
+
+                //aun mas mas mandatos utiles
+                console.log( `Para recuperar tu billetera:` );
+                console.log( `var state = prompt( 'entra los datos que guardaste mas temprano' );hedgehog_workshop.uploadState( state );await hedgehog_workshop.getStateOfChannels();` );
             })();
         </script>
     </body>
