@@ -5,7 +5,6 @@ var hedgehog_workshop = {
     btc_privkey: null,
     btc_address: null,
     utxos: {},
-    // relays: [ "ws://127.0.0.1:6969" ],
     relays: [ "wss://no.str.cr" ],
     channels_being_closed: {},
     txs_in_mempool: 0,
@@ -315,5 +314,45 @@ var hedgehog_workshop = {
     forceClose: async chan_id => {
         var force_close_txs = await hedgehog.closeChannel( chan_id );
         await chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", force_close_txs[ 0 ] );
+    },
+    downloadState: () => {
+        var state = {
+            hedgehog_state: JSON.parse( JSON.stringify( hedgehog.state ) ),
+            hedgehog_keypairs: JSON.parse( JSON.stringify( hedgehog.keypairs ) ),
+            workshop_state: {
+                faucet_usable: hedgehog_workshop.faucet_usable,
+                testnet_privkey: hedgehog_workshop.testnet_privkey,
+                network_string: hedgehog_workshop.network_string,
+                btc_privkey: hedgehog_workshop.btc_privkey,
+                btc_address: hedgehog_workshop.btc_address,
+                utxos: hedgehog_workshop.utxos,
+                relays: hedgehog_workshop.relays,
+                channels_being_closed: hedgehog_workshop.channels_being_closed,
+                txs_in_mempool: hedgehog_workshop.txs_in_mempool,
+                unconfirmed_L1_balance: hedgehog_workshop.unconfirmed_L1_balance,
+                confirmed_L1_balance: hedgehog_workshop.confirmed_L1_balance,
+                unconfirmed_L2_balance: hedgehog_workshop.unconfirmed_L2_balance,
+                confirmed_L2_balance: hedgehog_workshop.confirmed_L2_balance,
+            },
+        }
+        return btoa( JSON.stringify( state ) );
+    },
+    uploadState: blob => {
+        var state = JSON.parse( btoa( blob ) );
+        hedgehog.state = state.hedgehog_state;
+        hedgehog.keypairs = state.hedgehog_keypairs;
+        hedgehog_workshop.faucet_usable = state.workshop_state.faucet_usable;
+        hedgehog_workshop.testnet_privkey = state.workshop_state.testnet_privkey;
+        hedgehog_workshop.network_string = state.workshop_state.network_string;
+        hedgehog_workshop.btc_privkey = state.workshop_state.btc_privkey;
+        hedgehog_workshop.btc_address = state.workshop_state.btc_address;
+        hedgehog_workshop.utxos = state.workshop_state.utxos;
+        hedgehog_workshop.relays = state.workshop_state.relays;
+        hedgehog_workshop.channels_being_closed = state.workshop_state.channels_being_closed;
+        hedgehog_workshop.txs_in_mempool = state.workshop_state.txs_in_mempool;
+        hedgehog_workshop.unconfirmed_L1_balance = state.workshop_state.unconfirmed_L1_balance;
+        hedgehog_workshop.confirmed_L1_balance = state.workshop_state.confirmed_L1_balance;
+        hedgehog_workshop.unconfirmed_L2_balance = state.workshop_state.unconfirmed_L2_balance;
+        hedgehog_workshop.confirmed_L2_balance = state.workshop_state.confirmed_L2_balance;
     },
 }
