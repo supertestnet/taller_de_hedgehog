@@ -13,3 +13,6 @@ https://supertestnet.github.io/taller_de_hedgehog/workshop.html
 # Para investigar más
 **Proyecto originál**  
 https://github.com/supertestnet/hedgehog
+
+**Artículo por Bitcoin Magazine**  
+https://bitcoinmagazine.com/technical/super-testnet-introduces-hedgehog-a-protocol-for-asynchronous-layer-2-bitcoin-payments
