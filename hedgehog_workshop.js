@@ -193,12 +193,12 @@ var hedgehog_workshop = {
                 });
                 if ( !info_i_seek || !info_i_seek.hasOwnProperty( "status"  ) || !info_i_seek.status.hasOwnProperty( "confirmed" ) ) {
                     chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
-                    waiting_for = `Nothing! The transaction corresponding to your latest state was broadcasted and all is well. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your wallet any second.`;
+                    waiting_for = `Nothing! The transaction corresponding to your latest state was broadcasted and all is well. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
                 } else {
                     var num_of_confs = 0;
                     if ( info_i_seek.status.confirmed ) num_of_confs = blockheight - info_i_seek.status.block_height;
                     awaited_blockheight = info_i_seek.status.block_height || blockheight + 5;
-                    waiting_for = `You are waiting for confirmations. Hedgehog force closures require two transactions to force close a channel; you've already broadcasted the first one, but the second one is timelocked and cannot be broadcasted til the first one has 5 confirmations. It currently has ${num_of_confs}, so you are waiting for ${5 - num_of_confs} confirmations. When the time is right, you should see ${money_coming_to_you.toLocaleString()} sats arrive in your wallet, because your app will broadcast this tx automatically: <br><br>${tx_to_broadcast}`;
+                    waiting_for = `You are waiting for confirmations. Hedgehog force closures require two transactions to force close a channel; you've already broadcasted the first one, but the second one is timelocked and cannot be broadcasted til the first one has 5 confirmations. It currently has ${num_of_confs}, so you are waiting for ${5 - num_of_confs} confirmations. When the time is right, you should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet, because your app will broadcast this tx automatically: <br><br>${tx_to_broadcast}`;
                     if ( num_of_confs >= 5 ) chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
                 }
             } else {
@@ -212,7 +212,7 @@ var hedgehog_workshop = {
                     tx_to_broadcast = channel_data.force_close_data.conditional_revocation_tx;
                     type_of_tx = "conditional_revocation_tx";
                     chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
-                    waiting_for = `Nothing! Your counterparty broadcasted the transaction corresponding to his or her most recent state, which does not quite match yours, so you updated the transaction to your latest one. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your wallet any second.`;
+                    waiting_for = `Nothing! Your counterparty broadcasted the transaction corresponding to his or her most recent state, which does not quite match yours, so you updated the transaction to your latest one. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
                 } else {
                     tx_to_broadcast = channel_data.force_close_data.timeout_tx;
                     type_of_tx = "timeout_tx";
@@ -227,14 +227,14 @@ var hedgehog_workshop = {
                     });
                     if ( !info_i_seek || !info_i_seek.hasOwnProperty( "status"  ) || !info_i_seek.status.hasOwnProperty( "confirmed" ) ) {
                         chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
-                        waiting_for = `Nothing! The transaction corresponding to your latest state was broadcasted and all is well. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your wallet any second.`;
+                        waiting_for = `Nothing! The transaction corresponding to your latest state was broadcasted and all is well. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
                     } else {
                         var num_of_confs = 0;
                         if ( info_i_seek.status.confirmed ) num_of_confs = blockheight - info_i_seek.status.block_height;
                         awaited_blockheight = info_i_seek.status.block_height || blockheight + 5;
                         extra_awaited_blockheight = info_i_seek.status.block_height || blockheight + 10;
                         potential_extra_money = Number( tapscript.Tx.decode( tx_to_broadcast ).vout[ 0 ].value )  + 1_000;
-                        waiting_for = `You are waiting for confirmations. Hedgehog force closures require two transactions to force close a channel; your counterparty already broadcasted the first one, but the second one is timelocked and cannot be broadcasted til the first one has 5 confirmations. It currently has ${num_of_confs}, so you are waiting for ${5 - num_of_confs} confirmations. When the time is right, you should see ${money_coming_to_you.toLocaleString()} sats arrive in your wallet. If your counterparty disappears and thus never finalizes the force closure, then after 10 confirmations, you get to broadcast a penalty tx that earns you ${( Number( tapscript.Tx.decode( tx_to_broadcast ).vout[ 0 ].value )  + 1_000 ).toLocaleString()} sats. Your app is waiting ${10 - num_of_confs} more confirmations from now to do that, but it probably won't happen if your counterparty is honest. This is the penalty tx:<br><br>${tx_to_broadcast}`;
+                        waiting_for = `You are waiting for confirmations. Hedgehog force closures require two transactions to force close a channel; your counterparty already broadcasted the first one, but the second one is timelocked and cannot be broadcasted til the first one has 5 confirmations. It currently has ${num_of_confs}, so you are waiting for ${5 - num_of_confs} confirmations. When the time is right, you should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet. If your counterparty disappears and thus never finalizes the force closure, then after 10 confirmations, you get to broadcast a penalty tx that earns you ${( Number( tapscript.Tx.decode( tx_to_broadcast ).vout[ 0 ].value )  + 1_000 ).toLocaleString()} sats. Your app is waiting ${10 - num_of_confs} more confirmations from now to do that, but it probably won't happen if your counterparty is honest. This is the penalty tx:<br><br>${tx_to_broadcast}`;
                         if ( num_of_confs >= 10 ) chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
                     }
                 }
