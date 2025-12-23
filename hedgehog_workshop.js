@@ -192,7 +192,7 @@ var hedgehog_workshop = {
                 });
                 if ( !info_i_seek || !info_i_seek.hasOwnProperty( "status"  ) || !info_i_seek.status.hasOwnProperty( "confirmed" ) ) {
                     chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
-                    waiting_for = `Nothing! The transaction corresponding to your latest state was broadcasted and all is well. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
+                    waiting_for = `You are not waiting for anything! The transaction corresponding to your latest state was broadcasted and all is well. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
                 } else {
                     var num_of_confs = 0;
                     if ( info_i_seek.status.confirmed ) num_of_confs = blockheight - info_i_seek.status.block_height;
@@ -206,12 +206,12 @@ var hedgehog_workshop = {
                     type_of_tx = "full_revocation_tx";
                     chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
                     money_coming_to_you = Number( tapscript.Tx.decode( tx_to_broadcast ).vout[ 0 ].value );
-                    waiting_for = `Nothing! Your counterparty broadcasted very old state so we broadcasted the penalty tx and you should see ${money_coming_to_you.toLocaleString()} sats arrive in your wallet any second.`;
+                    waiting_for = `You are not waiting for anything! Your counterparty broadcasted very old state so we broadcasted the penalty tx and you should see ${money_coming_to_you.toLocaleString()} sats arrive in your wallet any second.`;
                 } else if ( channel_data.force_close_data.hasOwnProperty( "conditional_revocation_tx" ) ) {
                     tx_to_broadcast = channel_data.force_close_data.conditional_revocation_tx;
                     type_of_tx = "conditional_revocation_tx";
                     chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
-                    waiting_for = `Nothing! Your counterparty broadcasted the transaction corresponding to his or her most recent state, which does not quite match yours, so you updated the transaction to your latest one. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
+                    waiting_for = `You are not waiting for anything! Your counterparty broadcasted the transaction corresponding to his or her most recent state, which does not quite match yours, so you updated the transaction to your latest one. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
                 } else {
                     tx_to_broadcast = channel_data.force_close_data.timeout_tx;
                     type_of_tx = "timeout_tx";
@@ -226,7 +226,7 @@ var hedgehog_workshop = {
                     });
                     if ( !info_i_seek || !info_i_seek.hasOwnProperty( "status"  ) || !info_i_seek.status.hasOwnProperty( "confirmed" ) ) {
                         chain_client.commander( hedgehog_workshop.network_string.split( "," ), "broadcast", tx_to_broadcast );
-                        waiting_for = `Nothing! The transaction corresponding to your latest state was broadcasted and all is well. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
+                        waiting_for = `You are not waiting for anything! The transaction corresponding to your latest state was broadcasted and all is well. You should see ${money_coming_to_you.toLocaleString()} sats arrive in your L1 wallet any second.`;
                     } else {
                         var num_of_confs = 0;
                         if ( info_i_seek.status.confirmed ) num_of_confs = blockheight - info_i_seek.status.block_height;
